@@ -7,8 +7,6 @@ from utils.text_generation import summarize_simulation
 # Set default value for prompt_meta if not defined elsewhere
 prompt_meta = '### Instruction:\n{}\n### Response:'
 
-# Initialize global time and simulation variables
-global_time = 0
 repeats = 5
 
 log_locations = False
@@ -60,7 +58,7 @@ for name, description in town_people.items():
 for name, description in town_areas.items():
     locations.add_location(name, description)
 
-for repeat in range(repeats):
+for global_time, repeat in enumerate(range(repeats)):
     #log_output for one repeat
     log_output = ""
 
@@ -72,7 +70,7 @@ for repeat in range(repeats):
         if print_locations:
             print(f"=== LOCATIONS AT START OF REPEAT {repeat} ===")
             print(str(locations) + "\n")
-    
+
     # Plan actions for each agent
     for agent in agents:
         agent.plan(global_time, prompt_meta)
@@ -80,7 +78,7 @@ for repeat in range(repeats):
             log_output += f"{agent.name} plans: {agent.plans}\n"
             if print_plans:
                 print(f"{agent.name} plans: {agent.plans}")
-    
+
     # Execute planned actions and update memories
     for agent in agents:
         # Execute action
@@ -118,7 +116,7 @@ for repeat in range(repeats):
             if print_ratings:
                 print(f"=== UPDATED LOCATION RATINGS {global_time} FOR {agent.name}===\n")
                 print(f"{agent.name} location ratings: {place_ratings}\n")
-        
+
         old_location = agent.location
 
         new_location_name = place_ratings[0][0]
@@ -136,9 +134,6 @@ for repeat in range(repeats):
     print(summarize_simulation(log_output=log_output))
 
     whole_simulation_output += log_output
-
-    # Increment time
-    global_time += 1
 
 # Write log output to file
 with open('simulation_log.txt', 'w') as f:

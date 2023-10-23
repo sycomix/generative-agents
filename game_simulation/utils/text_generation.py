@@ -59,13 +59,9 @@ def get_rating(x):
     - int: The rating extracted from the string, or None if no rating is found.
     """
     nums = [int(i) for i in re.findall(r'\d+', x)]
-    if len(nums)>0:
-        return min(nums)
-    else:
-        return None
+    return min(nums, default=None)
 
 # Summarize simulation loop with OpenAI GPT-4
 def summarize_simulation(log_output):
     prompt = f"Summarize the simulation loop:\n\n{log_output}"
-    response = generate(prompt)
-    return response
+    return generate(prompt)
