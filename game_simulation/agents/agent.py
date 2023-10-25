@@ -66,7 +66,7 @@ class Agent:
             The prompt used to generate the plan.
         """
 
-        prompt = "You are {}. The following is your description: {} You just woke up. What is your goal for today? Write it down in an hourly basis, starting at {}:00. Write only one or two very short sentences. Be very brief. Use at most 50 words.".format(self.name, self.description, str(global_time))
+        prompt = f"You are {self.name}. The following is your description: {self.description} You just woke up. What is your goal for today? Write it down in an hourly basis, starting at {str(global_time)}:00. Write only one or two very short sentences. Be very brief. Use at most 50 words."
         self.plans = generate(prompt_meta.format(prompt), self.use_openai)
     
     def execute_action(self, other_agents, location, global_time, town_areas, prompt_meta):
@@ -93,18 +93,17 @@ class Agent:
         """
 
         people = [agent.name for agent in other_agents if agent.location == location]
-        
-        prompt = "You are {}. Your plans are: {}. You are currently in {} with the following description: {}. It is currently {}:00. The following people are in this area: {}. You can interact with them.".format(self.name, self.plans, location.name, town_areas[location.name], str(global_time), ', '.join(people))
-        
+
+        prompt = f"You are {self.name}. Your plans are: {self.plans}. You are currently in {location.name} with the following description: {town_areas[location.name]}. It is currently {str(global_time)}:00. The following people are in this area: {', '.join(people)}. You can interact with them."
+
         people_description = [f"{agent.name}: {agent.description}" for agent in other_agents if agent.location == location.name]
         prompt += ' You know the following about people: ' + '. '.join(people_description)
-        
+
         prompt += "What do you do in the next hour? Use at most 10 words to explain."
-        action = generate(prompt_meta.format(prompt), self.use_openai)
-        return action
+        return generate(prompt_meta.format(prompt), self.use_openai)
     
     def update_memories(self, other_agents, global_time, action_results):
-        
+
         """
         Updates the agent's memories based on their interactions with other agents.
         
@@ -120,7 +119,9 @@ class Agent:
 
         for agent in other_agents:
             if agent.location == self.location:
-                self.memories.append('[Time: {}. Person: {}. Memory: {}]\n'.format(str(global_time), agent.name, action_results[agent.name]))
+                self.memories.append(
+                    f'[Time: {str(global_time)}. Person: {agent.name}. Memory: {action_results[agent.name]}]\n'
+                )
 
     def compress_memories(self, global_time, MEMORY_LIMIT=10):
 
@@ -143,7 +144,7 @@ class Agent:
         memories_sorted = sorted(self.memory_ratings, key=lambda x: x[1], reverse=True)
         relevant_memories = memories_sorted[:MEMORY_LIMIT]
         memory_string_to_compress = '.'.join([a[0] for a in relevant_memories])
-        return '[Recollection at Time {}:00: {}]'.format(str(global_time), memory_string_to_compress)
+        return f'[Recollection at Time {str(global_time)}:00: {memory_string_to_compress}]'
     
     def rate_memories(self, locations, global_time, prompt_meta):
 
@@ -167,7 +168,7 @@ class Agent:
 
         memory_ratings = []
         for memory in self.memories:
-            prompt = "You are {}. Your plans are: {}. You are currently in {}. It is currently {}:00. You observe the following: {}. Give a rating, between 1 and 5, to how much you care about this.".format(self.name, self.plans, locations.get_location(self.location), str(global_time), memory)
+            prompt = f"You are {self.name}. Your plans are: {self.plans}. You are currently in {locations.get_location(self.location)}. It is currently {str(global_time)}:00. You observe the following: {memory}. Give a rating, between 1 and 5, to how much you care about this."
             res = generate(prompt_meta.format(prompt), self.use_openai)
             rating = get_rating(res)
             max_attempts = 2
@@ -205,7 +206,7 @@ class Agent:
 
         place_ratings = []
         for location in locations.locations.values():
-            prompt = "You are {}. Your plans are: {}. It is currently {}:00. You are currently at {}. How likely are you to go to {} next?".format(self.name, self.plans, str(global_time), locations.get_location(self.location), location.name)
+            prompt = f"You are {self.name}. Your plans are: {self.plans}. It is currently {str(global_time)}:00. You are currently at {locations.get_location(self.location)}. How likely are you to go to {location.name} next?"
             res = generate(prompt_meta.format(prompt), self.use_openai)
             rating = get_rating(res)
             max_attempts = 2
